@@ -6,7 +6,12 @@
 % Subject:      4EM30 Multiscle Modelling for Polymer Mechanics
 % Date:         07-02-2020
 % Title:        Force computation for particles with bonds
-% Description:  
+% Description:
+%   Calculates the forces on bonded particles by calculating the force per
+%   bond. 
+%   First calculates the distance and direction between bonded
+%   particles and then uses this with the stiffness and relaxed bond length
+%   to calculate the force vector on both particles.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 

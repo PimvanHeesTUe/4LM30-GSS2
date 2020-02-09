@@ -26,6 +26,10 @@ t_end = 10  ;   % length of simulation
 dim    = 3  ;   % 3D
 velrms = 0.3;   % starting velocity root mean squared
 
+% functionality
+animation = false;
+scheme = "velverlet";
+
 %% initialisation
 n = ceil(t_end/dt)+1; % amount of time steps
 
@@ -35,6 +39,7 @@ vel = zeros(N,dim,n);           % velocity vectors
 Ekin = zeros(n,1);              % Kinetic energy
 Epot = zeros(n,1);              % Potential energy
 Etot = zeros(n,1);              % Total energy
+end2end = zeros(n,1);           % end to end distance of the chain
 
 % bonds between particles
 bond = zeros(N-1,3);
@@ -48,12 +53,17 @@ vel(:,:,1) = randn(N,dim)*velrms;
 Ekin(1) = calc_Ekin(vel(:,:,1),m);
 Epot(1) = calc_EpotBond(pos(:,:,1),bond,k);
 Etot(1) = Ekin(1);
+end2end(1) = norm(pos(1,:,1)-pos(end,:,1));
 
 % force
 Fnew = zeros(N,dim);
 
 %% time looping
-figure(1)
+% show the moving chain during the simulation
+if animation
+    figure(1)
+end
+
 for i = 1:n-1
     % old force
     Fold = Fnew;
@@ -62,19 +72,32 @@ for i = 1:n-1
     % new force
     Fnew = forceall(pos(:,:,i+1),bond,k);
     % update velocity
-    vel(:,:,i+1) = VelVerletVel(vel(:,:,i),Fold,Fnew,m,dt);
+    if strcmp(scheme,"velverlet")
+        vel(:,:,i+1) = VelVerletVel(vel(:,:,i),Fold,Fnew,m,dt);
+    elseif strcmp(scheme,"euler")
+        vel(:,:,i+1) = VelVerletVel(vel(:,:,i),Fold,Fold,m,dt);
+        % Velocity-Verlet scheme with fnew=fold for velocity computation is
+        % the same as Euler scheme
+    else
+        fprintf("No such scheme!")
+        return
+    end
     
     % Energy
     Ekin(i+1) = calc_Ekin(vel(:,:,i+1),m);
     Epot(i+1) = calc_EpotBond(pos(:,:,i+1),bond,k);
     Etot(i+1) = Ekin(i+1) + Epot(i+1);
     
-    % plotting
-    figure(1)
-    plot3(pos(:,1,i+1),pos(:,2,i+1),pos(:,3,i+1),'--ro')
-    xlim([-5,15])
-    ylim([-5,5])
-    zlim([-5,5])
+    % End to end distance
+    end2end(i+1) = norm(pos(1,:,i+1)-pos(end,:,i+1));
+    
+    % plot the movement of the chain
+    if animation
+        plot3(pos(:,1,i+1),pos(:,2,i+1),pos(:,3,i+1),'--ro') %#ok<*UNRCH>
+        xlim([-5,15])
+        ylim([-5,5])
+        zlim([-5,5])
+    end
 end
 
 t=0:dt:t_end;
@@ -83,5 +106,7 @@ hold on
 plot(t,Ekin,':r')
 plot(t,Epot,':b')
 plot(t,Etot,'-k')
-legend({"Kinetic energy","Potential energy","Total energy"})
+legend({'Kinetic energy','Potential energy','Total energy'})
 
+figure(3)
+plot(t,end2end,'r')
