@@ -93,6 +93,7 @@ for i = 1:n-1
     
     % plot the movement of the chain
     if animation
+        figure(1)
         plot3(pos(:,1,i+1),pos(:,2,i+1),pos(:,3,i+1),'--ro') %#ok<*UNRCH>
         xlim([-5,15])
         ylim([-5,5])
